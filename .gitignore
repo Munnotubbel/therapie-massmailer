@@ -1,4 +1,10 @@
 .env
-.env copy
+.env*
 *.env
-*.env.*
+**/.env*
+therapie_massmailer_daten/.env
+therapie_massmailer_daten/*.env
+therapie_massmailer_daten/.env.*
+# Wir ignorieren die lokalen Daten-Dateien im Hauptverzeichnis nicht, 
+# aber die im Daten-Ordner während der Laufzeit.
+/therapie_massmailer_daten/.env*

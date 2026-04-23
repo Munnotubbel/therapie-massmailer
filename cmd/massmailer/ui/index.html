@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Therapie Massmailer</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        .container { max-width: 900px; margin: 40px auto; padding: 20px; }
+        .card { background: var(--card); border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); padding: 30px; margin-bottom: 20px; }
+        h1 { margin-top: 0; display: flex; align-items: center; justify-content: space-between; }
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-ghost { background: transparent; color: var(--text-light); }
+        .btn-ghost:hover { background: #f1f5f9; color: var(--text); }
+        
+        /* Wizard */
+        .wizard-step { display: none; }
+        .wizard-step.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .help-box { background: #eff6ff; border-left: 4px solid var(--primary); padding: 15px; margin: 15px 0; font-size: 0.9rem; color: #1e40af; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px; box-sizing: border-box; font-size: 1rem; }
+        
+        /* Dashboard */
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .contact-list { list-style: none; padding: 0; }
+        .contact-item { display: flex; align-items: center; padding: 15px; background: white; border-bottom: 1px solid #f1f5f9; transition: background 0.2s; }
+        .contact-item:hover { background: #f8fafc; }
+        .contact-item:last-child { border-bottom: none; }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; margin-right: 15px; background: #cbd5e1; }
+        .status-dot.sent { background: var(--primary); }
+        .status-dot.declined { background: var(--danger); }
+        .status-dot.interested { background: var(--success); }
+        .contact-info { flex-grow: 1; }
+        .contact-name { font-weight: 600; }
+        .contact-email { color: var(--text-light); font-size: 0.85rem; }
+        .contact-status-text { font-size: 0.85rem; font-weight: 600; }
+        
+        /* Settings Modal */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 100; }
+        .modal.active { display: flex; }
+        .modal-content { width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 12px; padding: 30px; }
+        
+        .tab-buttons { display: flex; border-bottom: 1px solid #e2e8f0; margin-bottom: 20px; }
+        .tab-btn { padding: 10px 20px; border: none; background: none; cursor: pointer; color: var(--text-light); border-bottom: 2px solid transparent; }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Wizard -->
+    <div id="wizard" class="card" style="display: none;">
+        <div id="step-1" class="wizard-step active">
+            <h2>Willkommen! 👋</h2>
+            <p>Lass uns den Therapie-Assistenten für dich einrichten. Das dauert nur zwei Minuten.</p>
+            <div style="text-align: right; margin-top: 40px;">
+                <button class="btn btn-primary" onclick="nextStep(2)">Los geht's</button>
+            </div>
+        </div>
+
+        <div id="step-2" class="wizard-step">
+            <h2>Schritt 1: Deine Email & App-Passwort</h2>
+            <p>Damit die App Emails in deinem Namen sicher verschicken kann, benötigt sie einen speziellen Zugang zu deinem Gmail-Konto.</p>
+            
+            <label>Deine Gmail Adresse</label>
+            <input type="email" id="wiz-email" placeholder="beispiel@gmail.com">
+            
+            <label>Gmail App-Passwort (16 Zeichen)</label>
+            <input type="password" id="wiz-pass" placeholder="z.B. abcd efgh ijkl mnop">
+            
+            <div class="help-box">
+                <strong>💡 So erstellst du das Passwort (glasklar erklärt):</strong>
+                <ol style="padding-left: 20px; line-height: 1.6;">
+                    <li>Gehe in dein <b>Google-Konto</b> (google.com -> Klick auf dein Profilbild -> Google-Konto verwalten).</li>
+                    <li>Klicke links auf den Reiter <b>Sicherheit</b>.</li>
+                    <li>Scrolle zu "So melden Sie sich bei Google an" und stelle sicher, dass die <b>Bestätigung in zwei Schritten</b> aktiviert ist.</li>
+                    <li>Tippe oben in die Suchleiste deines Google-Kontos das Wort <b>"App-Passwörter"</b> ein und klicke auf das Ergebnis.</li>
+                    <li>Gib der App einen Namen (z.B. "Therapie-Tool") und klicke auf <b>Erstellen</b>.</li>
+                    <li>Google zeigt dir jetzt ein gelbes Feld mit 16 Buchstaben (z.B. <code>abcd efgh ijkl mnop</code>). Kopiere diese und füge sie oben ein.</li>
+                </ol>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 40px;">
+                <button class="btn btn-ghost" onclick="nextStep(1)">Zurück</button>
+                <button class="btn btn-primary" onclick="nextStep(3)">Weiter zum nächsten Schritt</button>
+            </div>
+        </div>
+
+        <div id="step-3" class="wizard-step">
+            <h2>Schritt 2: Der KI-Schlüssel (Gemini)</h2>
+            <p>Die App nutzt die künstliche Intelligenz von Google (Gemini), um die Antworten der Therapeuten für dich zu lesen und zu verstehen.</p>
+            
+            <label>Gemini API Key</label>
+            <input type="text" id="wiz-key" placeholder="Kopiere den Key hier hinein (beginnt meist mit AIza...)">
+            
+            <div class="help-box">
+                <strong>💡 So holst du dir den kostenlosen Schlüssel:</strong>
+                <ol style="padding-left: 20px; line-height: 1.6;">
+                    <li>Besuche die Seite <b><a href="https://aistudio.google.com/" target="_blank" style="color: inherit; font-weight: bold;">Google AI Studio</a></b>.</li>
+                    <li>Melde dich mit deinem ganz normalen Gmail-Konto an.</li>
+                    <li>Klicke oben links in der Seitenleiste auf den Button <b>"Get API key"</b> (Schlüssel-Symbol).</li>
+                    <li>Klicke auf den blauen Button <b>"Create API key in new project"</b>.</li>
+                    <li>Es erscheint ein langer Code. Klicke auf <b>"Copy"</b> und füge ihn oben in das Feld ein.</li>
+                </ol>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 40px;">
+                <button class="btn btn-ghost" onclick="nextStep(2)">Zurück</button>
+                <button class="btn btn-primary" onclick="nextStep(4)">Weiter zur Nachricht</button>
+            </div>
+        </div>
+
+        <div id="step-4" class="wizard-step">
+            <h2>Schritt 3: Deine Email-Nachricht</h2>
+            <p>Hier kannst du den Text anpassen, der an die Therapeuten verschickt wird.</p>
+            
+            <label>Betreff</label>
+            <input type="text" id="wiz-subject" placeholder="z.B. Anfrage für Therapie-Termin">
+            
+            <label>Anrede (festgelegt)</label>
+            <div style="padding: 12px; background: #f8fafc; border-radius: 8px; margin-bottom: 20px; font-style: italic; color: var(--text-light);">
+                {{Briefanrede}},
+            </div>
+            
+            <label>Inhalt (Haupttext)</label>
+            <textarea id="wiz-body" rows="8" placeholder="Hier den text engeben OHNE die Anrede Zeile"></textarea>
+            
+            <div style="display: flex; justify-content: space-between; margin-top: 40px;">
+                <button class="btn btn-ghost" onclick="nextStep(3)">Zurück</button>
+                <button class="btn btn-primary" onclick="finishWizard()">Einrichtung abschließen & Starten</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" style="display: none;">
+        <div class="toolbar">
+            <h1>Kontakte <span style="font-size: 0.9rem; color: var(--text-light); margin-left: 10px;" id="count-summary"></span></h1>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button class="btn btn-ghost" onclick="loadContacts()" title="Liste aktualisieren">🔄</button>
+                <button class="btn btn-primary" onclick="toggleAddModal(true)">+ Neu</button>
+                <button class="btn btn-primary" id="run-btn" onclick="startMailing()">▶ Versand starten</button>
+                <a href="/api/download" class="btn btn-ghost" title="CSV herunterladen" style="text-decoration: none;">💾</a>
+                <button class="btn btn-ghost" onclick="toggleModal(true)" title="Einstellungen" style="font-size: 1.5rem; padding: 5px 10px;">⚙️</button>
+                <button class="btn btn-ghost" onclick="quitApp()" title="Beenden" style="color: var(--danger); font-size: 1.5rem; padding: 5px 10px;">⏻</button>
+            </div>
+        </div>
+        
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <ul id="contact-list" class="contact-list">
+                <!-- Contacts will be injected here -->
+            </ul>
+        </div>
+        <p id="status-text" style="color: var(--text-light); font-size: 0.9rem; text-align: center;"></p>
+    </div>
+</div>
+
+<!-- Add Contact Modal -->
+<div id="add-modal" class="modal">
+    <div class="modal-content">
+        <h2 style="margin-top: 0;" id="add-modal-title">Neuer Kontakt</h2>
+        
+        <label>Bezirk</label>
+        <input type="text" id="add-bezirk" placeholder="z.B. Mitte">
+        
+        <label>Email Adresse</label>
+        <input type="email" id="add-email" placeholder="beispiel@praxis.de">
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+            <div>
+                <label>Titel</label>
+                <select id="add-anrede" style="width:100%; padding:12px; border-radius:8px; border:1px solid #e2e8f0; font-size:1rem;">
+                    <option value="">(kein Titel)</option>
+                    <option value="Dr. med.">Dr. med.</option>
+                    <option value="Dipl.-Psych.">Dipl.-Psych.</option>
+                    <option value="Dr.">Dr.</option>
+                    <option value="Prof. Dr.">Prof. Dr.</option>
+                    <option value="M.Sc.">M.Sc.</option>
+                </select>
+            </div>
+            <div>
+                <label>Vorname</label>
+                <input type="text" id="add-vorname" placeholder="Anna">
+            </div>
+            <div>
+                <label>Nachname</label>
+                <input type="text" id="add-nachname" placeholder="Müller">
+            </div>
+        </div>
+
+        <label>Geschlecht</label>
+        <div style="display: flex; gap: 20px; margin-bottom: 20px; padding: 10px 0;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                <input type="radio" name="gender" value="w" style="width: auto; margin: 0;"> Weiblich (Frau)
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                <input type="radio" name="gender" value="m" style="width: auto; margin: 0;"> Männlich (Herr)
+            </label>
+        </div>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-ghost" onclick="toggleAddModal(false)">Abbrechen</button>
+            <button class="btn btn-primary" id="add-modal-btn" onclick="addContact()">Kontakt speichern</button>
+        </div>
+    </div>
+</div>
+
+<!-- Settings Modal -->
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <h2 style="margin-top: 0;">Einstellungen</h2>
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="switchTab('tab-auth', this)">Zugangsdaten</button>
+            <button class="tab-btn" onclick="switchTab('tab-msg', this)">Nachricht</button>
+        </div>
+        
+        <div id="tab-auth" class="tab-content active">
+            <label>Gmail</label>
+            <input type="email" id="set-email">
+            <label>App-Passwort</label>
+            <input type="password" id="set-pass">
+            <label>Gemini Key</label>
+            <input type="text" id="set-key">
+        </div>
+        
+        <div id="tab-msg" class="tab-content">
+            <label>Betreff</label>
+            <input type="text" id="set-subject">
+            <label>Anrede (festgelegt)</label>
+            <div style="padding: 12px; background: #f8fafc; border-radius: 8px; margin-bottom: 20px; font-style: italic; color: var(--text-light);">
+                {{Briefanrede}},
+            </div>
+            <label>Inhalt</label>
+            <textarea id="set-body" rows="10" placeholder="Hier den text engeben OHNE die Anrede Zeile"></textarea>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-top: 20px; border-top: 1px solid #e2e8f0; pt-20">
+            <button class="btn btn-ghost" onclick="quitApp()" style="color: var(--danger); font-size: 0.8rem;">⚠️ App vollständig beenden</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-ghost" onclick="toggleModal(false)">Abbrechen</button>
+                <button class="btn btn-primary" onclick="saveSettings()">Speichern</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let contacts = [];
+    let config = {};
+
+    async function init() {
+        const resp = await fetch('/api/config');
+        config = await resp.json();
+        
+        // Heartbeat pinger
+        setInterval(() => {
+            fetch('/api/heartbeat', { method: 'POST' }).catch(() => {});
+        }, 5000);
+        
+        if (!config.email || !config.pass || !config.key) {
+            // Fill wizard with existing values if any
+            document.getElementById('wiz-email').value = config.email || '';
+            document.getElementById('wiz-pass').value = config.pass || '';
+            document.getElementById('wiz-key').value = config.key || '';
+            document.getElementById('wiz-subject').value = config.subject || '';
+            document.getElementById('wiz-body').value = config.body || '';
+            
+            document.getElementById('wizard').style.display = 'block';
+        } else {
+            showDashboard();
+        }
+    }
+
+    function nextStep(n) {
+        document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
+        document.getElementById(`step-${n}`).classList.add('active');
+    }
+
+    async function finishWizard() {
+        config.email = document.getElementById('wiz-email').value;
+        config.pass = document.getElementById('wiz-pass').value;
+        config.key = document.getElementById('wiz-key').value;
+        config.subject = document.getElementById('wiz-subject').value;
+        config.body = document.getElementById('wiz-body').value;
+        await saveConfig();
+        showDashboard();
+    }
+
+    async function saveConfig() {
+        await fetch('/api/config', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(config)
+        });
+    }
+
+    async function showDashboard() {
+        document.getElementById('wizard').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        loadContacts();
+    }
+
+    async function loadContacts() {
+        const resp = await fetch('/api/contacts');
+        contacts = await resp.json();
+        renderContacts();
+    }
+
+    function renderContacts() {
+        const list = document.getElementById('contact-list');
+        list.innerHTML = '';
+        contacts.forEach(c => {
+            const li = document.createElement('li');
+            li.className = 'contact-item';
+            
+            let statusClass = '';
+            let statusText = 'Bereit';
+            if (c.dec) { statusClass = 'declined'; statusText = 'Abgesagt'; }
+            else if (c.has_appointment) { statusClass = 'interested'; statusText = 'Zusage/Warteliste'; }
+            else if (c.massmailed) { statusClass = 'sent'; statusText = 'Gesendet'; }
+            
+            li.innerHTML = `
+                <div class="status-dot ${statusClass}"></div>
+                <div class="contact-info">
+                    <div class="contact-name">${c.name}</div>
+                    <div class="contact-email">${c.email}</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div class="contact-status-text" style="color: ${statusClass === 'declined' ? 'var(--danger)' : statusClass === 'interested' ? 'var(--success)' : 'var(--text-light)'}">
+                        ${statusText}
+                    </div>
+                    <button class="btn btn-ghost" onclick="toggleAddModal(true, '${c.email}')" title="Bearbeiten" style="padding: 5px; font-size: 1.1rem;">✏️</button>
+                </div>
+            `;
+            list.appendChild(li);
+        });
+        document.getElementById('count-summary').innerText = `(${contacts.length} Kontakte)`;
+    }
+
+    function toggleModal(show) {
+        if (show) {
+            document.getElementById('set-email').value = config.email;
+            document.getElementById('set-pass').value = config.pass;
+            document.getElementById('set-key').value = config.key;
+            document.getElementById('set-subject').value = config.subject;
+            document.getElementById('set-body').value = config.body;
+            document.getElementById('modal').classList.add('active');
+        } else {
+            document.getElementById('modal').classList.remove('active');
+        }
+    }
+
+    function toggleAddModal(show, editEmail = null) {
+        if (show) {
+            if (editEmail) {
+                const c = contacts.find(x => x.email === editEmail);
+                document.getElementById('add-modal-title').innerText = 'Kontakt bearbeiten';
+                document.getElementById('add-modal-btn').innerText = 'Änderungen speichern';
+                document.getElementById('add-bezirk').value = c.bezirk;
+                document.getElementById('add-email').value = c.email;
+                document.getElementById('add-email').disabled = true; // Email nicht änderbar
+                document.getElementById('add-anrede').value = c.anrede_titel;
+                // Vorname extrahieren aus c.name (rudimentär)
+                let nameParts = c.name.replace(c.anrede_titel, '').trim().split(' ');
+                document.getElementById('add-vorname').value = nameParts[0] || '';
+                document.getElementById('add-nachname').value = c.nachname;
+                document.querySelectorAll('input[name="gender"]').forEach(rb => {
+                    rb.checked = (rb.value === c.geschlecht);
+                });
+            } else {
+                document.getElementById('add-modal-title').innerText = 'Neuer Kontakt';
+                document.getElementById('add-modal-btn').innerText = 'Kontakt speichern';
+                document.getElementById('add-email').disabled = false;
+                ['add-bezirk', 'add-email', 'add-vorname', 'add-nachname'].forEach(id => {
+                    document.getElementById(id).value = '';
+                });
+                document.getElementById('add-anrede').value = '';
+                document.querySelectorAll('input[name="gender"]').forEach(rb => rb.checked = false);
+            }
+            document.getElementById('add-modal').classList.add('active');
+        } else {
+            document.getElementById('add-modal').classList.remove('active');
+        }
+    }
+
+    async function addContact() {
+        const titel = document.getElementById('add-anrede').value;
+        const vorname = document.getElementById('add-vorname').value;
+        const nachname = document.getElementById('add-nachname').value;
+        const email = document.getElementById('add-email').value;
+        const isEdit = document.getElementById('add-email').disabled;
+
+        const genderEl = document.querySelector('input[name="gender"]:checked');
+        if (!genderEl) {
+            alert('Bitte wähle ein Geschlecht aus.');
+            return;
+        }
+
+        let fullName = vorname + ' ' + nachname;
+        if (titel) fullName = titel + ' ' + fullName;
+
+        const contactData = {
+            bezirk: document.getElementById('add-bezirk').value,
+            name: fullName,
+            email: email,
+            anrede_titel: titel,
+            nachname: nachname,
+            geschlecht: genderEl.value
+        };
+
+        const url = isEdit ? '/api/contacts/update' : '/api/contacts/add';
+        const resp = await fetch(url, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(contactData)
+        });
+
+        if (resp.ok) {
+            toggleAddModal(false);
+            loadContacts();
+        } else {
+            alert('Fehler beim Speichern des Kontakts.');
+        }
+    }
+
+    async function quitApp() {
+        if (confirm('Möchtest du die App wirklich beenden? Der Server wird gestoppt.')) {
+            await fetch('/api/quit', { method: 'POST' });
+            document.body.innerHTML = '<div style="display:flex; height:100vh; align-items:center; justify-content:center; text-align:center;"><div><h1>App beendet</h1><p>Der Server wurde gestoppt. Du kannst dieses Fenster jetzt schließen.</p></div></div>';
+            setTimeout(() => { window.close(); }, 1000);
+        }
+    }
+
+    function switchTab(id, btn) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    async function saveSettings() {
+        config.email = document.getElementById('set-email').value;
+        config.pass = document.getElementById('set-pass').value;
+        config.key = document.getElementById('set-key').value;
+        config.subject = document.getElementById('set-subject').value;
+        config.body = document.getElementById('set-body').value;
+        await saveConfig();
+        toggleModal(false);
+    }
+
+    async function startMailing() {
+        const btn = document.getElementById('run-btn');
+        btn.disabled = true;
+        btn.innerText = '⌛ Läuft...';
+        
+        const status = document.getElementById('status-text');
+        status.innerText = 'Versand läuft... bitte Fenster nicht schließen.';
+        
+        const eventSource = new EventSource('/api/run');
+        eventSource.onmessage = (e) => {
+            const data = JSON.parse(e.data);
+            if (data.type === 'progress') {
+                status.innerText = data.message;
+                loadContacts(); // Refresh list
+            } else if (data.type === 'done') {
+                status.innerText = 'Fertig! Alle Kontakte wurden verarbeitet.';
+                btn.disabled = false;
+                btn.innerText = '▶ Erneut prüfen';
+                eventSource.close();
+            } else if (data.type === 'error') {
+                alert('Fehler: ' + data.message);
+                btn.disabled = false;
+                btn.innerText = '▶ Erneut versuchen';
+                eventSource.close();
+            }
+        };
+    }
+
+    init();
+</script>
+
+</body>
+</html>
