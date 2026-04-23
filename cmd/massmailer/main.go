@@ -15,7 +15,7 @@ import (
 	"github.com/pkg/browser"
 )
 
-//go:embed ui/index.html
+//go:embed ui/index.html defaults/*
 var staticContent embed.FS
 
 type Config struct {
@@ -36,6 +36,16 @@ var lastHeartbeat time.Time
 func main() {
 	if _, err := os.Stat(dataDir); os.IsNotExist(err) {
 		os.Mkdir(dataDir, 0755)
+	}
+
+	// Initialize default files if missing
+	if _, err := os.Stat(csvPath); os.IsNotExist(err) {
+		content, _ := staticContent.ReadFile("defaults/contacts.csv")
+		os.WriteFile(csvPath, content, 0644)
+	}
+	if _, err := os.Stat(msgPath); os.IsNotExist(err) {
+		content, _ := staticContent.ReadFile("defaults/message.txt")
+		os.WriteFile(msgPath, content, 0644)
 	}
 
 	http.HandleFunc("/", serveIndex)
