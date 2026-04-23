@@ -8,10 +8,10 @@ Dieser intelligente Assistent hilft dir dabei, zeitnah einen Therapieplatz zu fi
 
 Hier findest du die startfertigen Programme. Klicke auf den Link für dein System, um zum Ordner zu gelangen und die Datei herunterzuladen:
 
-*   🍎 **[Mac (neue M1/M2/M3 Chips)](bin/massmailer_mac_apple_silicon)**
-*   🍎 **[Mac (alte Intel Chips)](bin/massmailer_mac_intel)**
-*   🪟 **[Windows PC](bin/massmailer_windows.exe)**
-*   🐧 **[Linux](bin/massmailer)**
+*   🍎 **[Mac (neue M1/M2/M3 Chips)](https://github.com/Munnotubbel/therapie-massmailer/raw/main/bin/massmailer_mac_apple_silicon)**
+*   🍎 **[Mac (alte Intel Chips)](https://github.com/Munnotubbel/therapie-massmailer/raw/main/bin/massmailer_mac_intel)**
+*   🪟 **[Windows PC](https://github.com/Munnotubbel/therapie-massmailer/raw/main/bin/massmailer_windows.exe)**
+*   🐧 **[Linux](https://github.com/Munnotubbel/therapie-massmailer/raw/main/bin/massmailer)**
 
 ---
 
